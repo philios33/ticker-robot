@@ -147,7 +147,46 @@ describe("MK2 Robot test", () => {
         r.executeCommandString("FFRFFLFF");
         expect(r.getCurrentPosition()).toEqual({x:4,y:6});
         expect(r.getCurrentHeading()).toEqual(0);
+    });
+
+    test("Boosting MK3", () => {
+        const r = new Robot("Test", {x:0,y:0}, "MK3", 0);
+        r.executeCommandString("FFF5FFF5FF");
+        expect(r.getCurrentPosition()).toEqual({x:0,y:16});
+        expect(r.getCurrentHeading()).toEqual(0);
+        expect(r.getCurrentRemainingFuel()).toEqual(20);
+    });
+
+    test("Out of fuel", () => {
+        const r = new Robot("Test", {x:0,y:0}, "MK3", 0);
+        r.executeCommandString("5F5F5F5F5F5F");
+        expect(r.getCurrentPosition()).toEqual({x:0,y:30});
+        expect(r.getCurrentHeading()).toEqual(0);
+        expect(r.getCurrentRemainingFuel()).toEqual(0);
+
+        r.executeCommandString("F"); // Out of boost fuel, movement command should be work
         
-    })
+        expect(r.getCurrentPosition()).toEqual({x:0,y:31});
+
+        r.executeCommandString("1F"); // Out of boost fuel, boost command should be ignored
+
+        expect(r.getCurrentPosition()).toEqual({x:0,y:31});
+    });
+
+    test("MK3 are allowed in negative space", () => {
+        const r = new Robot("Test", {x:0,y:2}, "MK3", 270);
+
+        r.executeCommand({direction: Direction.Forwards});
+        expect(r.getCurrentPosition()).toEqual({x:-1,y:2});
+
+        r.executeCommand({direction: Direction.Left});
+        r.executeCommand({direction: Direction.Forwards});
+        r.executeCommand({direction: Direction.Forwards});
+        r.executeCommand({direction: Direction.Forwards});
+        expect(r.getCurrentPosition()).toEqual({x:-1,y:-1});
+
+        expect(r.getCurrentHeading()).toEqual(180);
+        expect(r.getCurrentRemainingFuel()).toEqual(30);
+    });
     
 });

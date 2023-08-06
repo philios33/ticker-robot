@@ -6,6 +6,7 @@ export enum Direction {
 }
 
 export type Command = {
+    boost?: number
     direction: Direction
 }
 
@@ -14,4 +15,4 @@ export type Position = {
     y: number
 }
 
-export type Version = "MK1" | "MK2"
+export type Version = "MK1" | "MK2" | "MK3";

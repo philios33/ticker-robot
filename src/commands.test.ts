@@ -74,8 +74,7 @@ describe("Parsing commands", () => {
         const str = "2F";
         const result = parseCommandString(str);
         const expected = [{
-            direction: Direction.Forwards,
-        },{
+            boost: 2,
             direction: Direction.Forwards,
         }];
         expect(result).toEqual(expected);
@@ -89,12 +88,11 @@ describe("Parsing commands", () => {
         },{
             direction: Direction.Forwards,
         },{
+            boost: 2,
             direction: Direction.Forwards,
         },{
             direction: Direction.Forwards,
-        },{
-            direction: Direction.Forwards,
-        },];
+        }];
         expect(result).toEqual(expected);
     });
 
@@ -116,6 +114,7 @@ describe("Parsing commands", () => {
         const str = "1F";
         const result = parseCommandString(str);
         const expected = [{
+            boost: 1,
             direction: Direction.Forwards,
         }];
         expect(result).toEqual(expected);
@@ -123,6 +122,13 @@ describe("Parsing commands", () => {
 
     test("Two consequtive numbers fail", () => {
         const str = "FFL23F";
+        expect(() => {
+            const result = parseCommandString(str);
+        }).toThrow();
+    });
+
+    test("Only boost in forward direction", () => {
+        const str = "3L";
         expect(() => {
             const result = parseCommandString(str);
         }).toThrow();

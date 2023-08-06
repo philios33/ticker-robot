@@ -6,13 +6,18 @@ export class Robot {
     private currentPosition: Position;
     private version: Version;
     private heading: number; // 0 = North/Up, 90 = East/Right, 180 = South/Down, 270 = West/Left
+    private remainingFuel: number | null = null;
+    private allowNegativeSpace: boolean = false;
 
     constructor(name: string, currentPosition: Position, version: Version = "MK1", heading: number = 0) {
         this.name = name;
         this.currentPosition = currentPosition;
         this.version = version;
         this.heading = heading;
-        // 
+        if (version === "MK3") {
+            this.remainingFuel = 30;
+            this.allowNegativeSpace = true;
+        }
     }
 
     executeCommandString(commandString: string) {
@@ -21,7 +26,7 @@ export class Robot {
             try {
                 this.executeCommand(command);
             } catch(e: any) {
-                console.error("Error executing command on " + this.name + " in direction: " + command.direction + " while at " + this.currentPosition.x + "," + this.currentPosition.y + ": " + e.message);
+                console.error("Error executing command on " + this.name + " in direction: " + command.direction + " while at " + this.currentPosition.x + "," + this.currentPosition.y + ": " + e.message);                
             }
         }
     }
@@ -43,12 +48,16 @@ export class Robot {
             } else {
                 throw new Error("Unknown command.direction: " + command.direction);
             }
-        } else if (this.version === "MK2") {
+        } else if (this.version === "MK2" || this.version === "MK3") {
             if (command.direction === Direction.Forwards) {
-                this.moveForwards();
+                if (this.version === "MK3" && typeof command.boost === "number") {
+                    this.moveForwards(true, command.boost);
+                } else {
+                    this.moveForwards();
+                }
 
             } else if (command.direction === Direction.Backwards) {
-                throw new Error("MK2 cannot move backwards");
+                throw new Error("MK2/3 cannot move backwards");
 
             } else if (command.direction === Direction.Left) {
                 this.rotateAntiClockwise();
@@ -66,41 +75,70 @@ export class Robot {
 
 
 
-    moveForwards() {
+    moveForwards(isBoost: boolean = false, movementAmount: number = 1) {
+
+        if (isBoost) {
+            if (this.remainingFuel !== null) {
+                if (this.remainingFuel <= 0) {
+                    throw new Error("Out of fuel");
+                }
+                this.remainingFuel -= movementAmount;
+            } else {
+                throw new Error("No fuel tank but a boost was attempted");
+            }
+        }
+
         if (this.heading === 0) {
-            this.currentPosition.y++;
+            this.currentPosition.y += movementAmount;
 
         } else if (this.heading === 90) {
-            this.currentPosition.x++;
+            this.currentPosition.x += movementAmount;
 
         } else if (this.heading === 180) {
-            if (this.currentPosition.y === 0) {
-                throw new Error("Cannot move: At X axis/Bottom wall");
+            if (!this.allowNegativeSpace) {
+                if (movementAmount !== 1) {
+                    throw new Error("Cannot boost in non allowed negative space");
+                }
+                if (this.currentPosition.y === 0) {
+                    throw new Error("Cannot move: At X axis/Bottom wall");
+                }
             }
-            this.currentPosition.y--;
+            this.currentPosition.y -= movementAmount;
 
         } else if (this.heading === 270) {
-            if (this.currentPosition.x === 0) {
-                throw new Error("Cannot move: At Y axis/Left wall");
+            if (!this.allowNegativeSpace) {
+                if (movementAmount !== 1) {
+                    throw new Error("Cannot boost in non allowed negative space");
+                }
+                if (this.currentPosition.x === 0) {
+                    throw new Error("Cannot move: At Y axis/Left wall");
+                }
             }
-            this.currentPosition.x--;
+            this.currentPosition.x -= movementAmount;
 
         } else {
             throw new Error("Cannot keep track of position due to robot having a non standard heading: " + this.heading);
         }
+
+        
+
         // Send command to locomotion system
     }
 
     moveBackwards() {
         if (this.heading === 0) {
-            if (this.currentPosition.y === 0) {
-                throw new Error("Cannot move: At X axis/Bottom wall");
+            if (!this.allowNegativeSpace) {
+                if (this.currentPosition.y === 0) {
+                    throw new Error("Cannot move: At X axis/Bottom wall");
+                }
             }
             this.currentPosition.y--;
 
         } else if (this.heading === 90) {
-            if (this.currentPosition.x === 0) {
-                throw new Error("Cannot move: At Y axis/Left wall");
+            if (!this.allowNegativeSpace) {
+                if (this.currentPosition.x === 0) {
+                    throw new Error("Cannot move: At Y axis/Left wall");
+                }
             }
             this.currentPosition.x--;
 
@@ -118,8 +156,10 @@ export class Robot {
 
     moveLeft() {
         if (this.heading === 0) {
-            if (this.currentPosition.x === 0) {
-                throw new Error("Cannot move: At Y axis/Left wall");
+            if (!this.allowNegativeSpace) {
+                if (this.currentPosition.x === 0) {
+                    throw new Error("Cannot move: At Y axis/Left wall");
+                }
             }
             this.currentPosition.x--;
 
@@ -130,8 +170,10 @@ export class Robot {
             this.currentPosition.x++;
 
         } else if (this.heading === 270) {
-            if (this.currentPosition.y === 0) {
-                throw new Error("Cannot move: At X axis/Bottom wall");
+            if (!this.allowNegativeSpace) {
+                if (this.currentPosition.y === 0) {
+                    throw new Error("Cannot move: At X axis/Bottom wall");
+                }
             }
             this.currentPosition.y--;
 
@@ -146,14 +188,18 @@ export class Robot {
             this.currentPosition.x++;
 
         } else if (this.heading === 90) {
-            if (this.currentPosition.y === 0) {
-                throw new Error("Cannot move: At X axis/Bottom wall");
+            if (!this.allowNegativeSpace) {
+                if (this.currentPosition.y === 0) {
+                    throw new Error("Cannot move: At X axis/Bottom wall");
+                }
             }
             this.currentPosition.y--;
 
         } else if (this.heading === 180) {
-            if (this.currentPosition.x === 0) {
-                throw new Error("Cannot move: At Y axis/Left wall");
+            if (!this.allowNegativeSpace) {
+                if (this.currentPosition.x === 0) {
+                    throw new Error("Cannot move: At Y axis/Left wall");
+                }
             }
             this.currentPosition.x--;
 
@@ -194,7 +240,14 @@ export class Robot {
         return this.heading;
     }
 
-    reportCurrentPosition() {
-        console.log(this.name + " current position is: " + this.currentPosition.x + "," + this.currentPosition.y + " pointing in heading: " + this.heading);
+    getCurrentRemainingFuel() {
+        if (this.remainingFuel === null) {
+            throw new Error("This robot does not have a fuel tank");
+        }
+        return this.remainingFuel;
+    }
+
+    report() {
+        console.log(this.name + " current position is: " + this.currentPosition.x + "," + this.currentPosition.y + " pointing in heading: " + this.heading + " with " + this.remainingFuel + " remaining fuel");
     }
 }

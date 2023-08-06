@@ -10,23 +10,28 @@ export function parseCommandString(commandString: string): Array<Command> {
     const characters = commandString.split("");
 
     const results: Array<Command> = [];
-    let nextCommandIterations = 1;
-    let hasReceivedIterationsCommand = false; // Prevents two consequtive numbers
+    let nextForwardBoostAmount: number | null = null;
     for (const [position, character] of characters.entries()) {
         if (character === Direction.Forwards || character === Direction.Backwards || character === Direction.Left || character === Direction.Right) {
-            for (let i=0; i<nextCommandIterations; i++) {
+            if (nextForwardBoostAmount === null) {
                 results.push(commandFromDirection(character));
+            } else {
+                if (character === Direction.Forwards) {
+                    const mc = commandFromDirection(character);
+                    mc.boost = nextForwardBoostAmount;
+                    results.push(mc);
+                    nextForwardBoostAmount = null;
+                } else {
+                    throw new Error("Cannot boost in direction: " + character);
+                }
             }
-            nextCommandIterations = 1;
-            hasReceivedIterationsCommand = false;
 
         } else if (/^[1-5]$/.test(character)) {
-            if (hasReceivedIterationsCommand) {
-                throw new Error("Does not support more than a single digit number of iterations");
+            if (nextForwardBoostAmount !== null) {
+                throw new Error("Does not support more than a single digit number of boost");
             }
-            nextCommandIterations = parseInt(character);
-            hasReceivedIterationsCommand = true;
-            
+            nextForwardBoostAmount = parseInt(character);
+
         } else {
             throw new Error("Invalid character '" + character + "' at position: " + position + " of command string");
         }
