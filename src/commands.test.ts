@@ -36,6 +36,27 @@ describe("Parsing commands", () => {
         expect(result).toEqual(expected);
     });
 
+    test("Fail with unexpected char", () => {
+        const str = "G";
+        expect(() => {
+            const result = parseCommandString(str);
+        }).toThrow();
+    });
+
+    test("Fail with unexpected char at end", () => {
+        const str = "FFG";
+        expect(() => {
+            const result = parseCommandString(str);
+        }).toThrow();
+    });
+
+    test("Fail with whitespace", () => {
+        const str = " F ";
+        expect(() => {
+            const result = parseCommandString(str);
+        }).toThrow();
+    });
+
     test("Multiple command example", () => {
         const str = "FLB";
         const result = parseCommandString(str);
@@ -48,4 +69,64 @@ describe("Parsing commands", () => {
         }];
         expect(result).toEqual(expected);
     })
+
+    test("Boost command", () => {
+        const str = "2F";
+        const result = parseCommandString(str);
+        const expected = [{
+            direction: Direction.Forwards,
+        },{
+            direction: Direction.Forwards,
+        }];
+        expect(result).toEqual(expected);
+    });
+
+    test("Boost command with others", () => {
+        const str = "FF2FF";
+        const result = parseCommandString(str);
+        const expected = [{
+            direction: Direction.Forwards,
+        },{
+            direction: Direction.Forwards,
+        },{
+            direction: Direction.Forwards,
+        },{
+            direction: Direction.Forwards,
+        },{
+            direction: Direction.Forwards,
+        },];
+        expect(result).toEqual(expected);
+    });
+
+    test("Zero Boost fails", () => {
+        const str = "FF0F";
+        expect(() => {
+            const result = parseCommandString(str);
+        }).toThrow();
+    });
+
+    test("Six Boost fails", () => {
+        const str = "FF6F";
+        expect(() => {
+            const result = parseCommandString(str);
+        }).toThrow();
+    });
+
+    test("Single Boost command", () => {
+        const str = "1F";
+        const result = parseCommandString(str);
+        const expected = [{
+            direction: Direction.Forwards,
+        }];
+        expect(result).toEqual(expected);
+    });
+
+    test("Two consequtive numbers fail", () => {
+        const str = "FFL23F";
+        expect(() => {
+            const result = parseCommandString(str);
+        }).toThrow();
+    });
+
+    
 });
