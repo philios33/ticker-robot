@@ -7,7 +7,7 @@ describe("Parsing commands", () => {
         const str = "F";
         const result = parseCommandString(str);
         const expected = [{
-            movementDirection: Direction.Forwards,
+            direction: Direction.Forwards,
         }];
         expect(result).toEqual(expected);
     });
@@ -15,7 +15,7 @@ describe("Parsing commands", () => {
         const str = "B";
         const result = parseCommandString(str);
         const expected = [{
-            movementDirection: Direction.Backwards,
+            direction: Direction.Backwards,
         }];
         expect(result).toEqual(expected);
     });
@@ -23,7 +23,7 @@ describe("Parsing commands", () => {
         const str = "L";
         const result = parseCommandString(str);
         const expected = [{
-            movementDirection: Direction.Left,
+            direction: Direction.Left,
         }];
         expect(result).toEqual(expected);
     });
@@ -31,7 +31,7 @@ describe("Parsing commands", () => {
         const str = "R";
         const result = parseCommandString(str);
         const expected = [{
-            movementDirection: Direction.Right,
+            direction: Direction.Right,
         }];
         expect(result).toEqual(expected);
     });
@@ -40,11 +40,11 @@ describe("Parsing commands", () => {
         const str = "FLB";
         const result = parseCommandString(str);
         const expected = [{
-            movementDirection: Direction.Forwards,
+            direction: Direction.Forwards,
         },{
-            movementDirection: Direction.Left,
+            direction: Direction.Left,
         },{
-            movementDirection: Direction.Backwards,
+            direction: Direction.Backwards,
         }];
         expect(result).toEqual(expected);
     })

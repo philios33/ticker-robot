@@ -2,7 +2,7 @@ import { Command, Direction } from "./types";
 
 export function commandFromDirection(direction: Direction): Command {
     return {
-        movementDirection: direction,
+        direction: direction,
     }
 }
 

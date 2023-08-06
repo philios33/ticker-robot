@@ -6,10 +6,12 @@ export enum Direction {
 }
 
 export type Command = {
-    movementDirection: Direction
+    direction: Direction
 }
 
 export type Position = {
     x: number
     y: number
 }
+
+export type Version = "MK1" | "MK2"
